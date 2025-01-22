@@ -4,55 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/WarisLi/Golang-mini-project/core"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func getProducts(db *gorm.DB) ([]ProductModel, error) {
-	var products []ProductModel
-	result := db.Find(&products)
-	print(products)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return products, nil
-}
-
-func getProduct(db *gorm.DB, id uint) (*ProductModel, error) {
-	var product ProductModel
-	result := db.First(&product, id)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &product, nil
-}
-
-func createProduct(db *gorm.DB, product *ProductModel) error {
-	result := db.Create(product)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func updateProduct(db *gorm.DB, product *ProductModel) error {
-	result := db.Model(&product).Updates(product)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func deleteProduct(db *gorm.DB, id uint) error {
-	var product ProductModel
-	result := db.Delete(&product, id)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func createUser(db *gorm.DB, user *UserModel) error {
+func createUser(db *gorm.DB, user *core.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -66,8 +23,8 @@ func createUser(db *gorm.DB, user *UserModel) error {
 	return nil
 }
 
-func loginUser(db *gorm.DB, requestUser *UserModel) error {
-	var user UserModel
+func loginUser(db *gorm.DB, requestUser *core.User) error {
+	var user core.User
 	result := db.Where("username = ?", requestUser.Username).First(&user)
 	if result.Error != nil {
 		return result.Error

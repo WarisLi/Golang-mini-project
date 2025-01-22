@@ -4,13 +4,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/WarisLi/Golang-mini-project/core"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
 func createUserHandler(db *gorm.DB, c *fiber.Ctx) error {
-	user := new(UserModel)
+	user := new(core.User)
 	if err := c.BodyParser(user); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -24,7 +25,7 @@ func createUserHandler(db *gorm.DB, c *fiber.Ctx) error {
 }
 
 func loginHandler(db *gorm.DB, c *fiber.Ctx) error {
-	requestUser := new(UserModel)
+	requestUser := new(core.User)
 
 	if err := c.BodyParser(requestUser); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())

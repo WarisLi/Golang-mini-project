@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/WarisLi/Golang-mini-project/adapters"
+	"github.com/WarisLi/Golang-mini-project/core"
 	_ "github.com/WarisLi/Golang-mini-project/docs"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
@@ -89,7 +91,6 @@ func main() {
 	app := fiber.New()
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, databaseName)
-	// sdb, err := sql.Open("postgres", psqlInfo)
 	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
 
 	if err != nil {
@@ -98,7 +99,7 @@ func main() {
 
 	fmt.Printf("Database Connecction successful\n")
 
-	db.AutoMigrate(&ProductModel{}, &UserModel{})
+	db.AutoMigrate(&core.Product{}, &core.User{})
 	fmt.Printf("Database migration completed")
 
 	if err := godotenv.Load(); err != nil {
@@ -120,23 +121,17 @@ func main() {
 	// Middleware to extract user data from JWT
 	app.Use(extractUserFromJWT)
 
+	productRepo := adapters.NewGormProductRepository(db)
+	productService := core.NewProductService(productRepo)
+	productHandler := adapters.NewHttpProductHandler(productService)
+
 	productGroup := app.Group("/product")
 	productGroup.Use(checkRole)
-	productGroup.Get("", func(c *fiber.Ctx) error {
-		return getProductsHandler(db, c)
-	})
-	productGroup.Get("/:id", func(c *fiber.Ctx) error {
-		return getProductHandler(db, c)
-	})
-	productGroup.Post("", func(c *fiber.Ctx) error {
-		return createProductHandler(db, c)
-	})
-	productGroup.Put("/:id", func(c *fiber.Ctx) error {
-		return updateProductHandler(db, c)
-	})
-	productGroup.Delete("/:id", func(c *fiber.Ctx) error {
-		return deleteProductHandler(db, c)
-	})
+	productGroup.Get("", productHandler.GetProducts)
+	productGroup.Get("/:id", productHandler.GetProduct)
+	productGroup.Post("", productHandler.CreateProduct)
+	productGroup.Put("/:id", productHandler.UpdateProduct)
+	productGroup.Delete("/:id", productHandler.DeleteProduct)
 
 	userGroup := app.Group("/user")
 	userGroup.Post("", func(c *fiber.Ctx) error {
