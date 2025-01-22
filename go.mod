@@ -1,4 +1,4 @@
-module github.com/MMandMeiei/product-golang
+module github.com/WarisLi/Golang-mini-project
 
 go 1.23.2
 
