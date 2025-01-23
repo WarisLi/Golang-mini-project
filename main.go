@@ -109,11 +109,6 @@ func main() {
 	app.Get("/swagger/*", swagger.HandlerDefault) // default
 
 	app.Use(logger)
-	app.Post("/login", func(c *fiber.Ctx) error {
-		return loginHandler(db, c)
-	})
-	app.Post("/upload", uploadFileHandler)
-
 	app.Use(jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
 	}))
@@ -125,6 +120,10 @@ func main() {
 	productService := core.NewProductService(productRepo)
 	productHandler := adapters.NewHttpProductHandler(productService)
 
+	userRepo := adapters.NewGormUserRepository(db)
+	userService := core.NewUserService(userRepo)
+	userHandler := adapters.NewHttpUserHandler(userService)
+
 	productGroup := app.Group("/product")
 	productGroup.Use(checkRole)
 	productGroup.Get("", productHandler.GetProducts)
@@ -134,9 +133,8 @@ func main() {
 	productGroup.Delete("/:id", productHandler.DeleteProduct)
 
 	userGroup := app.Group("/user")
-	userGroup.Post("", func(c *fiber.Ctx) error {
-		return createUserHandler(db, c)
-	})
+	userGroup.Post("", userHandler.CreateUser)
+	userGroup.Post("/login", userHandler.LoginUser)
 
 	app.Listen(":8080")
 }
