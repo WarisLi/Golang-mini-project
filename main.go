@@ -109,12 +109,6 @@ func main() {
 	app.Get("/swagger/*", swagger.HandlerDefault) // default
 
 	app.Use(logger)
-	app.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
-	}))
-
-	// Middleware to extract user data from JWT
-	app.Use(extractUserFromJWT)
 
 	productRepo := adapters.NewGormProductRepository(db)
 	productService := core.NewProductService(productRepo)
@@ -124,6 +118,16 @@ func main() {
 	userService := core.NewUserService(userRepo)
 	userHandler := adapters.NewHttpUserHandler(userService)
 
+	userGroup := app.Group("/user")
+	userGroup.Post("", userHandler.CreateUser)
+	userGroup.Post("/login", userHandler.LoginUser)
+
+	// Middleware to extract user data from JWT
+	app.Use(extractUserFromJWT)
+	app.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
+	}))
+
 	productGroup := app.Group("/product")
 	productGroup.Use(checkRole)
 	productGroup.Get("", productHandler.GetProducts)
@@ -131,10 +135,6 @@ func main() {
 	productGroup.Post("", productHandler.CreateProduct)
 	productGroup.Put("/:id", productHandler.UpdateProduct)
 	productGroup.Delete("/:id", productHandler.DeleteProduct)
-
-	userGroup := app.Group("/user")
-	userGroup.Post("", userHandler.CreateUser)
-	userGroup.Post("/login", userHandler.LoginUser)
 
 	app.Listen(":8080")
 }

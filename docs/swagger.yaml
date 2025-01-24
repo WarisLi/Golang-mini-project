@@ -1,13 +1,34 @@
 basePath: /
 definitions:
-  main.Product:
+  core.LoginSuccess:
     properties:
+      message:
+        type: string
+      token:
+        type: string
+    type: object
+  core.Product:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
       id:
         type: integer
       name:
         type: string
       quantity:
         type: integer
+      updatedAt:
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
     type: object
 host: localhost:8080
 info:
@@ -28,13 +49,58 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.Product'
+              $ref: '#/definitions/core.Product'
             type: array
       security:
       - ApiKeyAuth: []
       summary: Get all products
       tags:
-      - products
+      - product
+  /product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get details of product
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: Get product
+      tags:
+      - product
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user
+      parameters:
+      - description: Username/password
+        in: body
+        name: core.UserRequest
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.LoginSuccess'
+      summary: Login user
+      tags:
+      - user
 schemes:
 - http
 securityDefinitions:

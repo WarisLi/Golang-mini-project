@@ -8,3 +8,13 @@ type User struct {
 	Username string `gorm:"unique"`
 	Password string
 }
+
+type UserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginSuccess struct {
+	Message string
+	Token   string
+}
