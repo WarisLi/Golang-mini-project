@@ -44,6 +44,43 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "Create product",
+                "parameters": [
+                    {
+                        "description": "Product",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/core.ProductInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.MessageResponse"
+                        }
+                    }
+                }
             }
         },
         "/product/{id}": {
@@ -81,6 +118,85 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "Update product",
+                "parameters": [
+                    {
+                        "description": "Product",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/core.ProductInput"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.MessageResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "Delete product",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.MessageResponse"
+                        }
+                    }
+                }
             }
         },
         "/user": {
@@ -99,11 +215,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Username/password",
-                        "name": "userLogin",
+                        "name": "user",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/core.UserLogin"
+                            "$ref": "#/definitions/core.User"
                         }
                     }
                 ],
@@ -133,11 +249,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Username/password",
-                        "name": "userLogin",
+                        "name": "user",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/core.UserLogin"
+                            "$ref": "#/definitions/core.User"
                         }
                     }
                 ],
@@ -174,28 +290,42 @@ const docTemplate = `{
         },
         "core.Product": {
             "type": "object",
+            "required": [
+                "name",
+                "quantity"
+            ],
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Book"
                 },
                 "quantity": {
-                    "type": "integer"
-                },
-                "updatedAt": {
-                    "type": "string"
+                    "type": "integer",
+                    "example": 1234
                 }
             }
         },
-        "core.UserLogin": {
+        "core.ProductInput": {
+            "type": "object",
+            "required": [
+                "name",
+                "quantity"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Book"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "example": 1234
+                }
+            }
+        },
+        "core.User": {
             "type": "object",
             "required": [
                 "password",
@@ -209,18 +339,6 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "admin"
-                }
-            }
-        },
-        "gorm.DeletedAt": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
                 }
             }
         }

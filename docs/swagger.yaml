@@ -14,20 +14,31 @@ definitions:
     type: object
   core.Product:
     properties:
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       id:
         type: integer
       name:
+        example: Book
         type: string
       quantity:
+        example: 1234
         type: integer
-      updatedAt:
-        type: string
+    required:
+    - name
+    - quantity
     type: object
-  core.UserLogin:
+  core.ProductInput:
+    properties:
+      name:
+        example: Book
+        type: string
+      quantity:
+        example: 1234
+        type: integer
+    required:
+    - name
+    - quantity
+    type: object
+  core.User:
     properties:
       password:
         example: Pass@1234
@@ -38,14 +49,6 @@ definitions:
     required:
     - password
     - username
-    type: object
-  gorm.DeletedAt:
-    properties:
-      time:
-        type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
     type: object
 host: localhost:8080
 info:
@@ -73,7 +76,52 @@ paths:
       summary: Get all products
       tags:
       - product
+    post:
+      consumes:
+      - application/json
+      description: Create product
+      parameters:
+      - description: Product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/core.ProductInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create product
+      tags:
+      - product
   /product/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete product
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete product
+      tags:
+      - product
     get:
       consumes:
       - application/json
@@ -96,6 +144,34 @@ paths:
       summary: Get product
       tags:
       - product
+    put:
+      consumes:
+      - application/json
+      description: Update product
+      parameters:
+      - description: Product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/core.ProductInput'
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update product
+      tags:
+      - product
   /user:
     post:
       consumes:
@@ -104,10 +180,10 @@ paths:
       parameters:
       - description: Username/password
         in: body
-        name: userLogin
+        name: user
         required: true
         schema:
-          $ref: '#/definitions/core.UserLogin'
+          $ref: '#/definitions/core.User'
       produces:
       - application/json
       responses:
@@ -126,10 +202,10 @@ paths:
       parameters:
       - description: Username/password
         in: body
-        name: userLogin
+        name: user
         required: true
         schema:
-          $ref: '#/definitions/core.UserLogin'
+          $ref: '#/definitions/core.User'
       produces:
       - application/json
       responses:
