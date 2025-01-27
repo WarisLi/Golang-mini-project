@@ -1,12 +1,16 @@
 package core
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+)
 
 // primary port
 type ProductService interface {
 	GetProducts() ([]Product, error)
 	GetProduct(id uint) (*Product, error)
-	CreateProduct(product Product) error
+	CreateProduct(productInput ProductInput) error
 	UpdateProduct(product Product) error
 	DeleteProduct(id uint) error
 }
@@ -38,9 +42,24 @@ func (s *productServiceImpl) GetProduct(id uint) (*Product, error) {
 	return product, nil
 }
 
-func (s *productServiceImpl) CreateProduct(product Product) error {
-	if product.Quantity <= 0 {
+func (s *productServiceImpl) CreateProduct(productInput ProductInput) error {
+	if productInput.Quantity <= 0 {
 		return errors.New("quantity must be positive")
+	}
+
+	// Convert ProductInput to JSON
+	data, err := json.Marshal(productInput)
+	if err != nil {
+		fmt.Println("Error marshalling ProductInput:", err)
+		return err
+	}
+
+	// Convert JSON to Product
+	var product Product
+	err = json.Unmarshal(data, &product)
+	if err != nil {
+		fmt.Println("Error unmarshalling to Product:", err)
+		return err
 	}
 
 	if err := s.repo.Save(product); err != nil {

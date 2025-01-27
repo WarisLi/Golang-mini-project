@@ -1,13 +1,54 @@
 basePath: /
 definitions:
-  main.Product:
+  core.LoginSuccess:
+    properties:
+      message:
+        type: string
+      token:
+        type: string
+    type: object
+  core.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  core.Product:
     properties:
       id:
         type: integer
       name:
+        example: Book
         type: string
       quantity:
+        example: 1234
         type: integer
+    required:
+    - name
+    - quantity
+    type: object
+  core.ProductInput:
+    properties:
+      name:
+        example: Book
+        type: string
+      quantity:
+        example: 1234
+        type: integer
+    required:
+    - name
+    - quantity
+    type: object
+  core.User:
+    properties:
+      password:
+        example: Pass@1234
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - password
+    - username
     type: object
 host: localhost:8080
 info:
@@ -28,13 +69,153 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.Product'
+              $ref: '#/definitions/core.Product'
             type: array
       security:
       - ApiKeyAuth: []
       summary: Get all products
       tags:
-      - products
+      - product
+    post:
+      consumes:
+      - application/json
+      description: Create product
+      parameters:
+      - description: Product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/core.ProductInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create product
+      tags:
+      - product
+  /product/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete product
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete product
+      tags:
+      - product
+    get:
+      consumes:
+      - application/json
+      description: Get details of product
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: Get product
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: Update product
+      parameters:
+      - description: Product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/core.ProductInput'
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update product
+      tags:
+      - product
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: Username/password
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/core.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      summary: Create user
+      tags:
+      - user
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user
+      parameters:
+      - description: Username/password
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/core.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.LoginSuccess'
+      summary: Login user
+      tags:
+      - user
 schemes:
 - http
 securityDefinitions:

@@ -28,7 +28,7 @@ func NewHttpUserHandler(service core.UserService) *HttpUserHandler {
 }
 
 // Handler functions
-// getProductsHandler godoc
+// GetProducts godoc
 // @Summary Get all products
 // @Description Get details of all products
 // @Tags product
@@ -47,6 +47,17 @@ func (h *HttpProductHandler) GetProducts(c *fiber.Ctx) error {
 	return c.JSON(products)
 }
 
+// Handler functions
+// GetProduct godoc
+// @Summary Get product
+// @Description Get details of product
+// @Tags product
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} core.Product
+// @Param id path uint true "ID"
+// @Router /product/{id} [get]
 func (h *HttpProductHandler) GetProduct(c *fiber.Ctx) error {
 	productId, err := strconv.Atoi(c.Params("id"))
 
@@ -62,8 +73,19 @@ func (h *HttpProductHandler) GetProduct(c *fiber.Ctx) error {
 	return c.JSON(product)
 }
 
+// Handler functions
+// CreateProduct godoc
+// @Summary Create product
+// @Description Create product
+// @Tags product
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} core.MessageResponse
+// @Param product body core.ProductInput true "Product"
+// @Router /product [POST]
 func (h *HttpProductHandler) CreateProduct(c *fiber.Ctx) error {
-	var product core.Product
+	var product core.ProductInput
 	if err := c.BodyParser(&product); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -72,9 +94,21 @@ func (h *HttpProductHandler) CreateProduct(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(product)
+	return c.Status(fiber.StatusCreated).JSON(core.MessageResponse{Message: "success"})
 }
 
+// Handler functions
+// UpdateProduct godoc
+// @Summary Update product
+// @Description Update product
+// @Tags product
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} core.MessageResponse
+// @Param product body core.ProductInput true "Product"
+// @Param id path uint true "ID"
+// @Router /product/{id} [PUT]
 func (h *HttpProductHandler) UpdateProduct(c *fiber.Ctx) error {
 	productId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
@@ -92,9 +126,20 @@ func (h *HttpProductHandler) UpdateProduct(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(productUpdate)
+	return c.Status(fiber.StatusOK).JSON(core.MessageResponse{Message: "success"})
 }
 
+// Handler functions
+// DeleteProduct godoc
+// @Summary Delete product
+// @Description Delete product
+// @Tags product
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} core.MessageResponse
+// @Param id path uint true "ID"
+// @Router /product/{id} [DELETE]
 func (h *HttpProductHandler) DeleteProduct(c *fiber.Ctx) error {
 	productId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
@@ -106,9 +151,19 @@ func (h *HttpProductHandler) DeleteProduct(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	return c.JSON(fiber.Map{"message": "Delete successful"})
+	return c.Status(fiber.StatusOK).JSON(core.MessageResponse{Message: "success"})
 }
 
+// Handler functions
+// CreateUser godoc
+// @Summary Create user
+// @Description Create user
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Param user body core.User true "Username/password"
+// @Success 201 {object} core.MessageResponse
+// @Router /user [post]
 func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
 	var user core.User
 	if err := c.BodyParser(&user); err != nil {
@@ -119,9 +174,19 @@ func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(user)
+	return c.Status(fiber.StatusCreated).JSON(core.MessageResponse{Message: "success"})
 }
 
+// Handler functions
+// LoginUser godoc
+// @Summary Login user
+// @Description Login user
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Param user body core.User true "Username/password"
+// @Success 200 {object} core.LoginSuccess
+// @Router /user/login [post]
 func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
 	requestUser := new(core.User)
 
@@ -156,8 +221,5 @@ func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
 		HTTPOnly: true,
 	})
 
-	return c.JSON(fiber.Map{
-		"message": "Login success",
-		"token":   t,
-	})
+	return c.JSON(core.LoginSuccess{Message: "Login success", Token: t})
 }
