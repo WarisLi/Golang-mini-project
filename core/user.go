@@ -9,12 +9,16 @@ type User struct {
 	Password string
 }
 
-type UserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+type UserLogin struct {
+	Username string `json:"username" binding:"required" example:"admin"`
+	Password string `json:"password" binding:"required" example:"Pass@1234"`
 }
 
 type LoginSuccess struct {
-	Message string
-	Token   string
+	Message string `json:"message"`
+	Token   string `json:"token"`
+}
+
+type MessageResponse struct {
+	Message string `json:"message"`
 }

@@ -83,6 +83,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/user": {
+            "post": {
+                "description": "Create user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Create user",
+                "parameters": [
+                    {
+                        "description": "Username/password",
+                        "name": "userLogin",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/core.UserLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/core.MessageResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/login": {
             "post": {
                 "description": "Login user",
@@ -99,11 +133,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Username/password",
-                        "name": "core.UserRequest",
+                        "name": "userLogin",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/core.UserLogin"
                         }
                     }
                 ],
@@ -130,6 +164,14 @@ const docTemplate = `{
                 }
             }
         },
+        "core.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "core.Product": {
             "type": "object",
             "properties": {
@@ -150,6 +192,23 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "core.UserLogin": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "Pass@1234"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
                 }
             }
         },

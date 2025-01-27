@@ -120,6 +120,16 @@ func (h *HttpProductHandler) DeleteProduct(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Delete successful"})
 }
 
+// Handler functions
+// CreateUser godoc
+// @Summary Create user
+// @Description Create user
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Param userLogin body core.UserLogin true "Username/password"
+// @Success 201 {object} core.MessageResponse
+// @Router /user [post]
 func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
 	var user core.User
 	if err := c.BodyParser(&user); err != nil {
@@ -130,7 +140,7 @@ func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(user)
+	return c.Status(fiber.StatusCreated).JSON(core.MessageResponse{Message: "success"})
 }
 
 // Handler functions
@@ -140,8 +150,8 @@ func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
 // @Tags user
 // @Accept  json
 // @Produce  json
+// @Param userLogin body core.UserLogin true "Username/password"
 // @Success 200 {object} core.LoginSuccess
-// @Param core.UserRequest body string true "Username/password"
 // @Router /user/login [post]
 func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
 	requestUser := new(core.User)

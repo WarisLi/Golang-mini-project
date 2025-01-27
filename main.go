@@ -123,10 +123,10 @@ func main() {
 	userGroup.Post("/login", userHandler.LoginUser)
 
 	// Middleware to extract user data from JWT
-	app.Use(extractUserFromJWT)
 	app.Use(jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
 	}))
+	app.Use(extractUserFromJWT)
 
 	productGroup := app.Group("/product")
 	productGroup.Use(checkRole)

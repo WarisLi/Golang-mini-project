@@ -7,6 +7,11 @@ definitions:
       token:
         type: string
     type: object
+  core.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
   core.Product:
     properties:
       createdAt:
@@ -21,6 +26,18 @@ definitions:
         type: integer
       updatedAt:
         type: string
+    type: object
+  core.UserLogin:
+    properties:
+      password:
+        example: Pass@1234
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - password
+    - username
     type: object
   gorm.DeletedAt:
     properties:
@@ -79,6 +96,28 @@ paths:
       summary: Get product
       tags:
       - product
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: Username/password
+        in: body
+        name: userLogin
+        required: true
+        schema:
+          $ref: '#/definitions/core.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/core.MessageResponse'
+      summary: Create user
+      tags:
+      - user
   /user/login:
     post:
       consumes:
@@ -87,10 +126,10 @@ paths:
       parameters:
       - description: Username/password
         in: body
-        name: core.UserRequest
+        name: userLogin
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/core.UserLogin'
       produces:
       - application/json
       responses:
