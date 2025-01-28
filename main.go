@@ -17,6 +17,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	_ "github.com/lib/pq"
 )
@@ -62,7 +63,7 @@ func checkRole(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-func logger(c *fiber.Ctx) error {
+func appLogger(c *fiber.Ctx) error {
 	start := time.Now()
 	fmt.Printf("URL = %s, Method = %s, Time = %s\n", c.OriginalURL(), c.Method(), start)
 
@@ -79,7 +80,8 @@ const (
 
 func setupDB() *gorm.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, databaseName)
-	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{TranslateError: true})
+	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{TranslateError: true,
+		Logger: logger.Default.LogMode(logger.Silent)})
 
 	if err != nil {
 		panic("fail to connect database\n")
@@ -102,7 +104,7 @@ func setupDB() *gorm.DB {
 	// init test data
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Pass@12345"), bcrypt.DefaultCost)
 	user := core.User{
-		Username: "test_user_1",
+		Username: "user_1",
 		Password: string(hashedPassword),
 	}
 	if result := db.Create(&user); result.Error != nil {
@@ -124,7 +126,7 @@ func setup() *fiber.App {
 
 	app.Get("/swagger/*", swagger.HandlerDefault) // default
 
-	app.Use(logger)
+	app.Use(appLogger)
 
 	productRepo := adapters.NewGormProductRepository(db)
 	productService := core.NewProductService(productRepo)

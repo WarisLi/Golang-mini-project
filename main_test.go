@@ -48,3 +48,46 @@ func TestCreateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestLoginUser(t *testing.T) {
+	app := setup()
+
+	tests := []struct {
+		description  string
+		requestBody  core.UsernamePassword
+		expectStatus int
+	}{
+		{
+			description:  "Valid input",
+			requestBody:  core.UsernamePassword{Username: "user_1", Password: "Pass@12345"},
+			expectStatus: fiber.StatusOK,
+		},
+		{
+			description:  "Missing param",
+			requestBody:  core.UsernamePassword{Username: "user_1"},
+			expectStatus: fiber.StatusBadRequest,
+		},
+		{
+			description:  "Wrong username",
+			requestBody:  core.UsernamePassword{Username: "wrong_username", Password: "12345"},
+			expectStatus: fiber.StatusUnauthorized,
+		},
+		{
+			description:  "Wrong password",
+			requestBody:  core.UsernamePassword{Username: "user_1", Password: "12345@Pass"},
+			expectStatus: fiber.StatusUnauthorized,
+		},
+	}
+
+	// Run tests
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			reqBody, _ := json.Marshal(test.requestBody)
+			req := httptest.NewRequest("POST", "/user/login", bytes.NewReader(reqBody))
+			req.Header.Set("Content-Type", "application/json")
+			resp, _ := app.Test(req)
+
+			assert.Equal(t, test.expectStatus, resp.StatusCode)
+		})
+	}
+}

@@ -205,6 +205,11 @@ func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
+	var validate = validator.New()
+	if err := validate.Struct(requestUser); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
+	}
+
 	err := h.service.LoginUser(*requestUser)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(core.MessageResponse{Message: err.Error()})
