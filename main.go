@@ -76,31 +76,36 @@ const (
 	password     = "mypassword"
 )
 
-// @title           Swagger API
-// @version         1.0
-// @description     This is a sample server for a Product API.
-
-// @host      localhost:8080
-// @BasePath /
-// @schemes http
-
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Authorization
-func main() {
-	app := fiber.New()
-
+func setupDB() *gorm.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, databaseName)
-	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{TranslateError: true})
 
 	if err != nil {
-		panic("fail to connect database")
+		panic("fail to connect database\n")
 	}
 
 	fmt.Printf("Database Connecction successful\n")
 
-	db.AutoMigrate(&core.Product{}, &core.User{})
-	fmt.Printf("Database migration completed")
+	models := []interface{}{core.Product{}, core.User{}}
+
+	db.AutoMigrate(models...)
+	// db.AutoMigrate(&core.Product{}, &core.User{})
+	fmt.Printf("Database migration completed\n")
+
+	for _, model := range models {
+		if err := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(model).Error; err != nil {
+			fmt.Printf("Data reset failed %s\n", err.Error())
+		}
+	}
+	fmt.Printf("Data reset completed\n")
+
+	return db
+}
+
+func setup() *fiber.App {
+	app := fiber.New()
+
+	db := setupDB()
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("load .env error")
@@ -135,6 +140,23 @@ func main() {
 	productGroup.Post("", productHandler.CreateProduct)
 	productGroup.Put("/:id", productHandler.UpdateProduct)
 	productGroup.Delete("/:id", productHandler.DeleteProduct)
+
+	return app
+}
+
+// @title           Swagger API
+// @version         1.0
+// @description     This is a sample server for a Product API.
+
+// @host      localhost:8080
+// @BasePath /
+// @schemes http
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+func main() {
+	app := setup()
 
 	app.Listen(":8080")
 }

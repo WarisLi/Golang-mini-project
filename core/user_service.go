@@ -1,13 +1,16 @@
 package core
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 // primary port
 type UserService interface {
-	RegisterUser(user User) error
-	LoginUser(user User) error
+	RegisterUser(usernamePassword UsernamePassword) error
+	LoginUser(usernamePassword UsernamePassword) error
 }
 
 // connect secondary port
@@ -20,12 +23,27 @@ func NewUserService(repo UserRepository) UserService {
 }
 
 // business logic
-func (s *userServiceImpl) RegisterUser(user User) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+func (s *userServiceImpl) RegisterUser(usernamePassword UsernamePassword) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(usernamePassword.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	user.Password = string(hashedPassword)
+	usernamePassword.Password = string(hashedPassword)
+
+	// Convert user to JSON
+	data, err := json.Marshal(usernamePassword)
+	if err != nil {
+		fmt.Println("Error marshalling UsernamePassword:", err)
+		return err
+	}
+
+	// Convert JSON to Product
+	var user User
+	err = json.Unmarshal(data, &user)
+	if err != nil {
+		fmt.Println("Error unmarshalling to User:", err)
+		return err
+	}
 
 	// call secondary port
 	err = s.repo.Create(user)
@@ -36,8 +54,23 @@ func (s *userServiceImpl) RegisterUser(user User) error {
 	return nil
 }
 
-func (s *userServiceImpl) LoginUser(user User) error {
-	err := s.repo.ValidateUser(user)
+func (s *userServiceImpl) LoginUser(usernamePassword UsernamePassword) error {
+	// Convert user to JSON
+	data, err := json.Marshal(usernamePassword)
+	if err != nil {
+		fmt.Println("Error marshalling UsernamePassword:", err)
+		return err
+	}
+
+	// Convert JSON to Product
+	var user User
+	err = json.Unmarshal(data, &user)
+	if err != nil {
+		fmt.Println("Error unmarshalling to User:", err)
+		return err
+	}
+
+	err = s.repo.ValidateUser(user)
 	if err != nil {
 		return err
 	}

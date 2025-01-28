@@ -1,13 +1,16 @@
 package adapters
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/WarisLi/Golang-mini-project/core"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 )
 
 // connect primary port
@@ -62,12 +65,12 @@ func (h *HttpProductHandler) GetProduct(c *fiber.Ctx) error {
 	productId, err := strconv.Atoi(c.Params("id"))
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	product, err := h.service.GetProduct(uint(productId))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	return c.JSON(product)
@@ -87,11 +90,11 @@ func (h *HttpProductHandler) GetProduct(c *fiber.Ctx) error {
 func (h *HttpProductHandler) CreateProduct(c *fiber.Ctx) error {
 	var product core.ProductInput
 	if err := c.BodyParser(&product); err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	if err := h.service.CreateProduct(product); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(core.MessageResponse{Message: "success"})
@@ -112,18 +115,18 @@ func (h *HttpProductHandler) CreateProduct(c *fiber.Ctx) error {
 func (h *HttpProductHandler) UpdateProduct(c *fiber.Ctx) error {
 	productId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	productUpdate := new(core.Product)
 	if err := c.BodyParser(productUpdate); err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	productUpdate.ID = uint(productId)
 
 	if err := h.service.UpdateProduct(*productUpdate); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(core.MessageResponse{Message: "success"})
@@ -143,7 +146,7 @@ func (h *HttpProductHandler) UpdateProduct(c *fiber.Ctx) error {
 func (h *HttpProductHandler) DeleteProduct(c *fiber.Ctx) error {
 	productId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	err = h.service.DeleteProduct(uint(productId))
@@ -165,13 +168,21 @@ func (h *HttpProductHandler) DeleteProduct(c *fiber.Ctx) error {
 // @Success 201 {object} core.MessageResponse
 // @Router /user [post]
 func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
-	var user core.User
+	var user core.UsernamePassword
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
+	}
+
+	var validate = validator.New()
+	if err := validate.Struct(user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	if err := h.service.RegisterUser(user); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(core.MessageResponse{Message: "success"})
@@ -188,15 +199,15 @@ func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
 // @Success 200 {object} core.LoginSuccess
 // @Router /user/login [post]
 func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
-	requestUser := new(core.User)
+	requestUser := new(core.UsernamePassword)
 
 	if err := c.BodyParser(requestUser); err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	err := h.service.LoginUser(*requestUser)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).SendString(err.Error())
+		return c.Status(fiber.StatusUnauthorized).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
 	// Create the Claims
