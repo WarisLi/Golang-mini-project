@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/swagger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -89,7 +90,6 @@ func setupDB() *gorm.DB {
 	models := []interface{}{core.Product{}, core.User{}}
 
 	db.AutoMigrate(models...)
-	// db.AutoMigrate(&core.Product{}, &core.User{})
 	fmt.Printf("Database migration completed\n")
 
 	for _, model := range models {
@@ -98,6 +98,17 @@ func setupDB() *gorm.DB {
 		}
 	}
 	fmt.Printf("Data reset completed\n")
+
+	// init test data
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Pass@12345"), bcrypt.DefaultCost)
+	user := core.User{
+		Username: "test_user_1",
+		Password: string(hashedPassword),
+	}
+	if result := db.Create(&user); result.Error != nil {
+		fmt.Printf("InitialData reset failed %s\n", result.Error)
+	}
+	fmt.Printf("Initial data completed\n")
 
 	return db
 }
