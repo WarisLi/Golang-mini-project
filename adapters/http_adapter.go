@@ -118,14 +118,12 @@ func (h *HttpProductHandler) UpdateProduct(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
-	productUpdate := new(core.Product)
+	productUpdate := new(core.ProductInput)
 	if err := c.BodyParser(productUpdate); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
-	productUpdate.ID = uint(productId)
-
-	if err := h.service.UpdateProduct(*productUpdate); err != nil {
+	if err := h.service.UpdateProduct(uint(productId), *productUpdate); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
