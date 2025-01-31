@@ -8,14 +8,13 @@ import (
 
 	"github.com/WarisLi/Golang-mini-project/adapters"
 	"github.com/WarisLi/Golang-mini-project/core"
+	"github.com/WarisLi/Golang-mini-project/database"
 	_ "github.com/WarisLi/Golang-mini-project/docs"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
 	_ "github.com/lib/pq"
 )
@@ -61,46 +60,15 @@ func checkRole(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-func logger(c *fiber.Ctx) error {
+func appLogger(c *fiber.Ctx) error {
 	start := time.Now()
 	fmt.Printf("URL = %s, Method = %s, Time = %s\n", c.OriginalURL(), c.Method(), start)
 
 	return c.Next()
 }
 
-const (
-	host         = "localhost"
-	port         = 5432
-	databaseName = "mydatabase"
-	username     = "myuser"
-	password     = "mypassword"
-)
-
-// @title           Swagger API
-// @version         1.0
-// @description     This is a sample server for a Product API.
-
-// @host      localhost:8080
-// @BasePath /
-// @schemes http
-
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Authorization
-func main() {
+func setupApp(productRepo core.ProductRepository, userRepo core.UserRepository) *fiber.App {
 	app := fiber.New()
-
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, databaseName)
-	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
-
-	if err != nil {
-		panic("fail to connect database")
-	}
-
-	fmt.Printf("Database Connecction successful\n")
-
-	db.AutoMigrate(&core.Product{}, &core.User{})
-	fmt.Printf("Database migration completed")
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("load .env error")
@@ -108,13 +76,11 @@ func main() {
 
 	app.Get("/swagger/*", swagger.HandlerDefault) // default
 
-	app.Use(logger)
+	app.Use(appLogger)
 
-	productRepo := adapters.NewGormProductRepository(db)
 	productService := core.NewProductService(productRepo)
 	productHandler := adapters.NewHttpProductHandler(productService)
 
-	userRepo := adapters.NewGormUserRepository(db)
 	userService := core.NewUserService(userRepo)
 	userHandler := adapters.NewHttpUserHandler(userService)
 
@@ -135,6 +101,27 @@ func main() {
 	productGroup.Post("", productHandler.CreateProduct)
 	productGroup.Put("/:id", productHandler.UpdateProduct)
 	productGroup.Delete("/:id", productHandler.DeleteProduct)
+
+	return app
+}
+
+// @title           Swagger API
+// @version         1.0
+// @description     This is a sample server for a Product API.
+
+// @host      localhost:8080
+// @BasePath /
+// @schemes http
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+func main() {
+	db := database.SetupDB()
+	productRepo := adapters.NewGormProductRepository(db)
+	userRepo := adapters.NewGormUserRepository(db)
+
+	app := setupApp(productRepo, userRepo)
 
 	app.Listen(":8080")
 }
