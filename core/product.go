@@ -10,6 +10,6 @@ type Product struct {
 }
 
 type ProductInput struct {
-	Name     string `json:"name" binding:"required" example:"Book"`
-	Quantity int    `json:"quantity" binding:"required" example:"1234"`
+	Name     string `json:"name" binding:"required" example:"Book" validate:"required"`
+	Quantity int    `json:"quantity" binding:"required" example:"1234" validate:"required,min=1"`
 }

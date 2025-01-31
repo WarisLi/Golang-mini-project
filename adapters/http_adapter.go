@@ -47,7 +47,7 @@ func (h *HttpProductHandler) GetProducts(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	return c.JSON(products)
+	return c.Status(fiber.StatusOK).JSON(products)
 }
 
 // Handler functions
@@ -73,7 +73,7 @@ func (h *HttpProductHandler) GetProduct(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
-	return c.JSON(product)
+	return c.Status(fiber.StatusOK).JSON(product)
 }
 
 // Handler functions
@@ -90,6 +90,11 @@ func (h *HttpProductHandler) GetProduct(c *fiber.Ctx) error {
 func (h *HttpProductHandler) CreateProduct(c *fiber.Ctx) error {
 	var product core.ProductInput
 	if err := c.BodyParser(&product); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
+	}
+
+	var validate = validator.New()
+	if err := validate.Struct(product); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(core.MessageResponse{Message: err.Error()})
 	}
 
@@ -210,7 +215,7 @@ func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
 
 	err := h.service.LoginUser(*requestUser)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(core.MessageResponse{Message: err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(core.MessageResponse{Message: "The username or password is incorrect"})
 	}
 
 	// Create the Claims
