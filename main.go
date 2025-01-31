@@ -8,16 +8,13 @@ import (
 
 	"github.com/WarisLi/Golang-mini-project/adapters"
 	"github.com/WarisLi/Golang-mini-project/core"
+	"github.com/WarisLi/Golang-mini-project/database"
 	_ "github.com/WarisLi/Golang-mini-project/docs"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 
 	_ "github.com/lib/pq"
 )
@@ -70,55 +67,8 @@ func appLogger(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-const (
-	host         = "localhost"
-	port         = 5432
-	databaseName = "mydatabase"
-	username     = "myuser"
-	password     = "mypassword"
-)
-
-func setupDB() *gorm.DB {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, databaseName)
-	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{TranslateError: true,
-		Logger: logger.Default.LogMode(logger.Silent)})
-
-	if err != nil {
-		panic("fail to connect database\n")
-	}
-
-	fmt.Printf("Database Connecction successful\n")
-
-	models := []interface{}{core.Product{}, core.User{}}
-
-	db.AutoMigrate(models...)
-	fmt.Printf("Database migration completed\n")
-
-	for _, model := range models {
-		if err := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(model).Error; err != nil {
-			fmt.Printf("Data reset failed %s\n", err.Error())
-		}
-	}
-	fmt.Printf("Data reset completed\n")
-
-	// init test data
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Pass@12345"), bcrypt.DefaultCost)
-	user := core.User{
-		Username: "user_1",
-		Password: string(hashedPassword),
-	}
-	if result := db.Create(&user); result.Error != nil {
-		fmt.Printf("InitialData reset failed %s\n", result.Error)
-	}
-	fmt.Printf("Initial data completed\n")
-
-	return db
-}
-
-func setup() *fiber.App {
+func setupApp(productRepo core.ProductRepository, userRepo core.UserRepository) *fiber.App {
 	app := fiber.New()
-
-	db := setupDB()
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("load .env error")
@@ -128,11 +78,9 @@ func setup() *fiber.App {
 
 	app.Use(appLogger)
 
-	productRepo := adapters.NewGormProductRepository(db)
 	productService := core.NewProductService(productRepo)
 	productHandler := adapters.NewHttpProductHandler(productService)
 
-	userRepo := adapters.NewGormUserRepository(db)
 	userService := core.NewUserService(userRepo)
 	userHandler := adapters.NewHttpUserHandler(userService)
 
@@ -169,7 +117,11 @@ func setup() *fiber.App {
 // @in header
 // @name Authorization
 func main() {
-	app := setup()
+	db := database.SetupDB()
+	productRepo := adapters.NewGormProductRepository(db)
+	userRepo := adapters.NewGormUserRepository(db)
+
+	app := setupApp(productRepo, userRepo)
 
 	app.Listen(":8080")
 }
