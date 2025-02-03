@@ -1,7 +1,8 @@
-package adapters
+package database
 
 import (
-	"github.com/WarisLi/Golang-mini-project/core"
+	"github.com/WarisLi/Golang-mini-project/internal/core/models"
+	"github.com/WarisLi/Golang-mini-project/internal/core/ports"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -11,16 +12,16 @@ type GormRepository struct {
 }
 
 // connect secondary port
-func NewGormProductRepository(db *gorm.DB) core.ProductRepository {
+func NewGormProductRepository(db *gorm.DB) ports.ProductRepository {
 	return &GormRepository{db: db}
 }
 
-func NewGormUserRepository(db *gorm.DB) core.UserRepository {
+func NewGormUserRepository(db *gorm.DB) ports.UserRepository {
 	return &GormRepository{db: db}
 }
 
-func (r *GormRepository) GetAll() ([]core.Product, error) {
-	var products []core.Product
+func (r *GormRepository) GetAll() ([]models.Product, error) {
+	var products []models.Product
 
 	if result := r.db.Find(&products); result.Error != nil {
 		return nil, result.Error
@@ -28,8 +29,8 @@ func (r *GormRepository) GetAll() ([]core.Product, error) {
 	return products, nil
 }
 
-func (r *GormRepository) GetOne(id uint) (*core.Product, error) {
-	var product core.Product
+func (r *GormRepository) GetOne(id uint) (*models.Product, error) {
+	var product models.Product
 
 	if result := r.db.First(&product, id); result.Error != nil {
 		return nil, result.Error
@@ -37,7 +38,7 @@ func (r *GormRepository) GetOne(id uint) (*core.Product, error) {
 	return &product, nil
 }
 
-func (r *GormRepository) Save(product core.Product) error {
+func (r *GormRepository) Save(product models.Product) error {
 	if result := r.db.Create(&product); result.Error != nil {
 		return result.Error
 	}
@@ -45,7 +46,7 @@ func (r *GormRepository) Save(product core.Product) error {
 	return nil
 }
 
-func (r *GormRepository) Update(product core.Product) error {
+func (r *GormRepository) Update(product models.Product) error {
 	if result := r.db.Model(&product).Updates(product); result.Error != nil {
 		return result.Error
 	}
@@ -53,14 +54,14 @@ func (r *GormRepository) Update(product core.Product) error {
 }
 
 func (r *GormRepository) Delete(id uint) error {
-	var product core.Product
+	var product models.Product
 	if result := r.db.Delete(&product, id); result.Error != nil {
 		return result.Error
 	}
 	return nil
 }
 
-func (r *GormRepository) Create(user core.User) error {
+func (r *GormRepository) Create(user models.User) error {
 	if result := r.db.Create(&user); result.Error != nil {
 		return result.Error
 	}
@@ -68,8 +69,8 @@ func (r *GormRepository) Create(user core.User) error {
 	return nil
 }
 
-func (r *GormRepository) ValidateUser(requestUser core.User) error {
-	var user core.User
+func (r *GormRepository) ValidateUser(requestUser models.User) error {
+	var user models.User
 	result := r.db.Where("username = ?", requestUser.Username).First(&user)
 	if result.Error != nil {
 		return result.Error

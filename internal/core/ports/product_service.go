@@ -1,17 +1,19 @@
-package core
+package ports
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 )
 
 // primary port
 type ProductService interface {
-	GetProducts() ([]Product, error)
-	GetProduct(id uint) (*Product, error)
-	CreateProduct(productInput ProductInput) error
-	UpdateProduct(id uint, productInput ProductInput) error
+	GetProducts() ([]models.Product, error)
+	GetProduct(id uint) (*models.Product, error)
+	CreateProduct(productInput models.ProductInput) error
+	UpdateProduct(id uint, productInput models.ProductInput) error
 	DeleteProduct(id uint) error
 }
 
@@ -24,7 +26,7 @@ func NewProductService(repo ProductRepository) ProductService {
 }
 
 // business logic
-func (s *productServiceImpl) GetProducts() ([]Product, error) {
+func (s *productServiceImpl) GetProducts() ([]models.Product, error) {
 	products, err := s.repo.GetAll()
 	if err != nil {
 		return nil, err
@@ -33,7 +35,7 @@ func (s *productServiceImpl) GetProducts() ([]Product, error) {
 	return products, nil
 }
 
-func (s *productServiceImpl) GetProduct(id uint) (*Product, error) {
+func (s *productServiceImpl) GetProduct(id uint) (*models.Product, error) {
 	product, err := s.repo.GetOne(id)
 	if err != nil {
 		return nil, err
@@ -42,7 +44,7 @@ func (s *productServiceImpl) GetProduct(id uint) (*Product, error) {
 	return product, nil
 }
 
-func (s *productServiceImpl) CreateProduct(productInput ProductInput) error {
+func (s *productServiceImpl) CreateProduct(productInput models.ProductInput) error {
 	if productInput.Quantity <= 0 {
 		return errors.New("quantity must be positive")
 	}
@@ -55,7 +57,7 @@ func (s *productServiceImpl) CreateProduct(productInput ProductInput) error {
 	}
 
 	// Convert JSON to Product
-	var product Product
+	var product models.Product
 	err = json.Unmarshal(data, &product)
 	if err != nil {
 		fmt.Println("Error unmarshalling to Product:", err)
@@ -69,7 +71,7 @@ func (s *productServiceImpl) CreateProduct(productInput ProductInput) error {
 	return nil
 }
 
-func (s *productServiceImpl) UpdateProduct(id uint, productInput ProductInput) error {
+func (s *productServiceImpl) UpdateProduct(id uint, productInput models.ProductInput) error {
 	if productInput.Quantity <= 0 {
 		return errors.New("quantity must be positive")
 	}
@@ -82,7 +84,7 @@ func (s *productServiceImpl) UpdateProduct(id uint, productInput ProductInput) e
 	}
 
 	// Convert JSON to Product
-	var product Product
+	var product models.Product
 	err = json.Unmarshal(data, &product)
 	if err != nil {
 		fmt.Println("Error unmarshalling to Product:", err)

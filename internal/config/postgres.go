@@ -1,9 +1,9 @@
-package database
+package config
 
 import (
 	"fmt"
 
-	"github.com/WarisLi/Golang-mini-project/core"
+	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -21,7 +21,7 @@ const (
 func initData(db *gorm.DB) {
 	// init test data
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Pass@12345"), bcrypt.DefaultCost)
-	user := core.User{
+	user := models.User{
 		Username: "user_1",
 		Password: string(hashedPassword),
 	}
@@ -29,7 +29,7 @@ func initData(db *gorm.DB) {
 		fmt.Printf("Initial user data failed %s\n", result.Error)
 	}
 
-	books := []*core.Product{{
+	books := []*models.Product{{
 		Name:     "Book A",
 		Quantity: 1200,
 	}, {
@@ -55,7 +55,7 @@ func SetupDB() *gorm.DB {
 
 	fmt.Printf("Database Connecction successful\n")
 
-	models := []interface{}{core.Product{}, core.User{}}
+	models := []interface{}{models.Product{}, models.User{}}
 
 	db.AutoMigrate(models...)
 	fmt.Printf("Database migration completed\n")
