@@ -1,16 +1,17 @@
-package core
+package ports
 
 import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // primary port
 type UserService interface {
-	RegisterUser(usernamePassword UsernamePassword) error
-	LoginUser(usernamePassword UsernamePassword) error
+	RegisterUser(usernamePassword models.UsernamePassword) error
+	LoginUser(usernamePassword models.UsernamePassword) error
 }
 
 // connect secondary port
@@ -23,7 +24,7 @@ func NewUserService(repo UserRepository) UserService {
 }
 
 // business logic
-func (s *userServiceImpl) RegisterUser(usernamePassword UsernamePassword) error {
+func (s *userServiceImpl) RegisterUser(usernamePassword models.UsernamePassword) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(usernamePassword.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -38,7 +39,7 @@ func (s *userServiceImpl) RegisterUser(usernamePassword UsernamePassword) error 
 	}
 
 	// Convert JSON to Product
-	var user User
+	var user models.User
 	err = json.Unmarshal(data, &user)
 	if err != nil {
 		fmt.Println("Error unmarshalling to User:", err)
@@ -54,7 +55,7 @@ func (s *userServiceImpl) RegisterUser(usernamePassword UsernamePassword) error 
 	return nil
 }
 
-func (s *userServiceImpl) LoginUser(usernamePassword UsernamePassword) error {
+func (s *userServiceImpl) LoginUser(usernamePassword models.UsernamePassword) error {
 	// Convert user to JSON
 	data, err := json.Marshal(usernamePassword)
 	if err != nil {
@@ -63,7 +64,7 @@ func (s *userServiceImpl) LoginUser(usernamePassword UsernamePassword) error {
 	}
 
 	// Convert JSON to Product
-	var user User
+	var user models.User
 	err = json.Unmarshal(data, &user)
 	if err != nil {
 		fmt.Println("Error unmarshalling to User:", err)
