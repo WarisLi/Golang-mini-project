@@ -5,15 +5,15 @@ import (
 	"time"
 
 	"github.com/WarisLi/Golang-mini-project/internal/adapters/http"
-	"github.com/WarisLi/Golang-mini-project/internal/core/ports"
+	"github.com/WarisLi/Golang-mini-project/internal/tests/mocks"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func setupAppTest() (*fiber.App, *ports.MockProductRepository, *ports.MockUserRepository) {
+func setupAppTest() (*fiber.App, *mocks.MockProductRepository, *mocks.MockUserRepository) {
 	app := fiber.New()
-	mockProductRepo := new(ports.MockProductRepository)
-	mockUserRepo := new(ports.MockUserRepository)
+	mockProductRepo := new(mocks.MockProductRepository)
+	mockUserRepo := new(mocks.MockUserRepository)
 	http.SetupRoutes(app, mockProductRepo, mockUserRepo)
 
 	return app, mockProductRepo, mockUserRepo

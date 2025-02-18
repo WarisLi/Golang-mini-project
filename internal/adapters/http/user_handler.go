@@ -64,9 +64,9 @@ func (h *HttpUserHandler) CreateUser(c *fiber.Ctx) error {
 // @Success 200 {object} models.LoginSuccess
 // @Router /user/login [post]
 func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
-	requestUser := new(models.UsernamePassword)
+	var requestUser models.UsernamePassword
 
-	if err := c.BodyParser(requestUser); err != nil {
+	if err := c.BodyParser(&requestUser); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MessageResponse{Message: err.Error()})
 	}
 
@@ -75,7 +75,7 @@ func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MessageResponse{Message: err.Error()})
 	}
 
-	err := h.service.LoginUser(*requestUser)
+	err := h.service.LoginUser(requestUser)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(models.MessageResponse{Message: "The username or password is incorrect"})
 	}
