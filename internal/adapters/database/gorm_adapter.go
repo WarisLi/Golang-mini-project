@@ -1,6 +1,8 @@
 package database
 
 import (
+	"errors"
+
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 	"github.com/WarisLi/Golang-mini-project/internal/core/ports"
 	"golang.org/x/crypto/bcrypt"
@@ -55,8 +57,12 @@ func (r *GormRepository) Update(product models.Product) error {
 
 func (r *GormRepository) Delete(id uint) error {
 	var product models.Product
-	if result := r.db.Delete(&product, id); result.Error != nil {
+	result := r.db.Delete(&product, id)
+	if result.Error != nil {
 		return result.Error
+	}
+	if result.RowsAffected <= 0 {
+		return errors.New("Delete failed")
 	}
 	return nil
 }
