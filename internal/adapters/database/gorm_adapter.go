@@ -5,7 +5,6 @@ import (
 
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 	"github.com/WarisLi/Golang-mini-project/internal/core/ports"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +12,6 @@ type GormRepository struct {
 	db *gorm.DB
 }
 
-// connect secondary port
 func NewGormProductRepository(db *gorm.DB) ports.ProductRepository {
 	return &GormRepository{db: db}
 }
@@ -67,24 +65,20 @@ func (r *GormRepository) Delete(id uint) error {
 	return nil
 }
 
+func (r *GormRepository) GetUser(username string) (*models.User, error) {
+	var user models.User
+	result := r.db.Where("username = ?", username).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &user, nil
+}
+
 func (r *GormRepository) Create(user models.User) error {
 	if result := r.db.Create(&user); result.Error != nil {
 		return result.Error
 	}
 
-	return nil
-}
-
-func (r *GormRepository) ValidateUser(requestUser models.User) error {
-	var user models.User
-	result := r.db.Where("username = ?", requestUser.Username).First(&user)
-	if result.Error != nil {
-		return result.Error
-	}
-
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(requestUser.Password))
-	if err != nil {
-		return err
-	}
 	return nil
 }

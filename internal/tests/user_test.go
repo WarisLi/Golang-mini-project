@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -52,10 +53,13 @@ func TestCreateUser(t *testing.T) {
 func TestLoginUser(t *testing.T) {
 	app, _, mockUserRepo := setupAppTest()
 
-	validInput := models.User{Username: "mock_user_1", Password: "Pass@12345"}
-	invalidInput := models.User{Username: "mock_user_1", Password: "Abc@7890"}
-	mockUserRepo.On("ValidateUser", validInput).Return(nil)
-	mockUserRepo.On("ValidateUser", invalidInput).Return(errors.New("Invalid input"))
+	validUsername := "mock_user_1"
+	validPassword, _ := bcrypt.GenerateFromPassword([]byte("Pass@12345"), bcrypt.DefaultCost)
+
+	invalidInput := "mock_user_2"
+
+	mockUserRepo.On("GetUser", validUsername).Return(&models.User{Username: validUsername, Password: string(validPassword)}, nil)
+	mockUserRepo.On("GetUser", invalidInput).Return(&models.User{}, errors.New("Invalid input"))
 
 	tests := []struct {
 		description  string
@@ -68,13 +72,18 @@ func TestLoginUser(t *testing.T) {
 			expectStatus: fiber.StatusOK,
 		},
 		{
+			description:  "Invalid password",
+			requestBody:  models.UsernamePassword{Username: "mock_user_1", Password: "WrongPass"},
+			expectStatus: fiber.StatusUnauthorized,
+		},
+		{
 			description:  "Missing param",
-			requestBody:  models.UsernamePassword{Username: "mock_user_2"},
+			requestBody:  models.UsernamePassword{Username: "mock_user_1"},
 			expectStatus: fiber.StatusBadRequest,
 		},
 		{
-			description:  "Invalid username or password",
-			requestBody:  models.UsernamePassword{Username: "mock_user_1", Password: "Abc@7890"},
+			description:  "Invalid username",
+			requestBody:  models.UsernamePassword{Username: "mock_user_2", Password: "Abc@7890"},
 			expectStatus: fiber.StatusUnauthorized,
 		},
 	}

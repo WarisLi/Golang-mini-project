@@ -3,18 +3,19 @@ package ports
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// primary port
 type UserService interface {
 	RegisterUser(usernamePassword models.UsernamePassword) error
-	LoginUser(usernamePassword models.UsernamePassword) error
+	LoginUser(usernamePassword models.UsernamePassword) (string, error)
 }
 
-// connect secondary port
 type userServiceImpl struct {
 	repo UserRepository
 }
@@ -23,7 +24,6 @@ func NewUserService(repo UserRepository) UserService {
 	return &userServiceImpl{repo: repo}
 }
 
-// business logic
 func (s *userServiceImpl) RegisterUser(usernamePassword models.UsernamePassword) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(usernamePassword.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -55,26 +55,33 @@ func (s *userServiceImpl) RegisterUser(usernamePassword models.UsernamePassword)
 	return nil
 }
 
-func (s *userServiceImpl) LoginUser(usernamePassword models.UsernamePassword) error {
-	// Convert user to JSON
-	data, err := json.Marshal(usernamePassword)
+func (s *userServiceImpl) LoginUser(requestUser models.UsernamePassword) (string, error) {
+	userData, err := s.repo.GetUser(requestUser.Username)
 	if err != nil {
-		fmt.Println("Error marshalling UsernamePassword:", err)
-		return err
+		return "", err
 	}
 
-	// Convert JSON to Product
-	var user models.User
-	err = json.Unmarshal(data, &user)
+	// Validate password
+	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(requestUser.Password))
 	if err != nil {
-		fmt.Println("Error unmarshalling to User:", err)
-		return err
+		return "", err
 	}
 
-	err = s.repo.ValidateUser(user)
-	if err != nil {
-		return err
+	// Create the Claims
+	claims := jwt.MapClaims{
+		"username": userData.Username,
+		"role":     "admin",
+		"exp":      time.Now().Add(time.Hour * 72).Unix(),
 	}
 
-	return nil
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Generate encoded token
+	signedToken, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
 }
