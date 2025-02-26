@@ -8,7 +8,6 @@ import (
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 )
 
-// primary port
 type ProductService interface {
 	GetProducts() ([]models.Product, error)
 	GetProduct(id uint) (*models.Product, error)
@@ -25,7 +24,6 @@ func NewProductService(repo ProductRepository) ProductService {
 	return &productServiceImpl{repo: repo}
 }
 
-// business logic
 func (s *productServiceImpl) GetProducts() ([]models.Product, error) {
 	products, err := s.repo.GetAll()
 	if err != nil {
