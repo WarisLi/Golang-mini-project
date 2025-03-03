@@ -1,16 +1,24 @@
 # Go Mini Project: User & Product Services
 
 ## Overview
-This is a mini project implemented in Go (Golang) with two services: `user` and `product`. The project follows **Hexagonal Architecture** for better separation of concerns, scalability, and testability. I use `Fiber` handling HTTP requests and defining routes for user and product services., `GORM` for interacting with the PostgreSQL database, and `Swagger` for API documentation.
+This is a mini project implemented in Go (Golang) with two services: **user** and **product**. The project follows **Hexagonal Architecture** for better separation of concerns, scalability, and testability. I use `Fiber` handling HTTP requests and defining routes for user and product services, `GORM` for interacting with the PostgreSQL database, `Kafka` for event streming between services, and `Swagger` for API documentation.
+
+- **Notification Service** (https://github.com/WarisLi/Golang-notification-service.git) :
+  Handles event-based notifications triggered by the Product Service.  
+
+- **Shared Event** (https://github.com/WarisLi/Golang-shared-event.git) :
+  Shared repository containing event definitions used for internal service communication.  
 
 ---
 ## Technologies Used
 
-   - Go: Programming language
-   - Fiber: HTTP framework
-   - GORM: ORM for database operations
-   - PostgreSQL: Relational database
-   - Swagger: API documentation
+   - **Go** : Programming language
+   - **Hexagonal architecture** : Architecture pattern:
+   - **Fiber** : HTTP framework
+   - **GORM** : ORM for database operations
+   - **PostgreSQL** : Relational database
+   - **Kafka** : Event streaming
+   - **Swagger** : API documentation
 
 ---
 
@@ -52,6 +60,8 @@ This is a mini project implemented in Go (Golang) with two services: `user` and 
 │   │   │   ├── /middleware
 │   │   │   │   ├── jwt_middleware.go     # JWT Middleware
 │   │   │   │   ├── logging_middleware.go # Logging Middleware
+│   │   ├── /producer       # Producer Adapter (Kafka)
+│   │   │   ├── kafka_producer.go
 │   ├── /config
 │   │   ├── postgres.go  # Setup DB Connection
 │   ├── /tests           # Unit tests

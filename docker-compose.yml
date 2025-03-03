@@ -26,5 +26,28 @@ services:
       - postgres
     restart: unless-stopped
 
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper
+    volumes:
+      - ./zookeeper:/data
+    
+  kafka:
+    image: bitnami/kafka
+    container_name: kafka
+    ports:
+      - 9092:9092
+    volumes:
+      - ./kafka:/bitnami/kafka/data
+      - ~/kafka/data/zookeeper_data:/var/lib/zookeeper/data
+      - ~/kafka/data/zookeeper_log:/var/lib/zookeeper/log
+    environment:
+      - ALLOW_PLANTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper
+    depends_on:
+      - zookeeper
+
 volumes:
   postgres_data:

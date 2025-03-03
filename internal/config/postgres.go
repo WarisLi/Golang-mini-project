@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 	"golang.org/x/crypto/bcrypt"
@@ -45,7 +46,9 @@ func initData(db *gorm.DB) {
 }
 
 func SetupDB() *gorm.DB {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, databaseName)
+	psqlInfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable",
+		os.Getenv("PG_HOST"), os.Getenv("PG_PORT"), os.Getenv("PG_USERNAME"),
+		os.Getenv("PG_PASSWORD"), os.Getenv("PG_DATABASE_NAME"))
 	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{TranslateError: true,
 		Logger: logger.Default.LogMode(logger.Silent)})
 

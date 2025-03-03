@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type User struct {
 	gorm.Model `swaggerignore:"true"`
 	ID         uint   `gorm:"AUTO_INCREMENT" json:"-" `
-	Username   string `gorm:"unique" json:"username" binding:"required" example:"admin"`
+	Username   string `gorm:"unique;not null" json:"username" binding:"required" example:"admin"`
 	Password   string `json:"password" binding:"required" example:"Pass@1234"`
 }
 

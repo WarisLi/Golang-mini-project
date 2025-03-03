@@ -9,4 +9,5 @@
 .env
 
 tmp/
-uploads/
+kafka/
+zookeeper/
