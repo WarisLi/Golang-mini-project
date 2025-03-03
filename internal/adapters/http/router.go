@@ -4,24 +4,24 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	"github.com/WarisLi/Golang-mini-project/internal/adapters/http/middleware"
-	"github.com/WarisLi/Golang-mini-project/internal/core/ports"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/swagger"
 )
 
-func SetupRoutes(app *fiber.App, productRepo ports.ProductRepository, userRepo ports.UserRepository) {
+func SetupRoutes(
+	app *fiber.App,
+	productHandler *HttpProductHandler,
+	userHandler *HttpUserHandler,
+) {
 	app.Get("/swagger/*", swagger.HandlerDefault) // default
 
 	// Middleware to log request information
-	app.Use(middleware.AppLogger)
-
-	productService := ports.NewProductService(productRepo)
-	productHandler := NewHttpProductHandler(productService)
-
-	userService := ports.NewUserService(userRepo)
-	userHandler := NewHttpUserHandler(userService)
+	app.Use(logger.New(logger.Config{
+		TimeZone: "Asia/Bangkok",
+	}))
 
 	userGroup := app.Group("/user")
 	userGroup.Post("", userHandler.CreateUser)

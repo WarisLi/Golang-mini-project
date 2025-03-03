@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
+	events "github.com/WarisLi/Golang-shared-events"
+
+	"github.com/WarisLi/Golang-mini-project/internal/adapters/producer"
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 )
 
-// primary port
 type ProductService interface {
 	GetProducts() ([]models.Product, error)
 	GetProduct(id uint) (*models.Product, error)
@@ -18,14 +21,17 @@ type ProductService interface {
 }
 
 type productServiceImpl struct {
-	repo ProductRepository
+	repo          ProductRepository
+	eventProducer producer.EventProducer
 }
 
-func NewProductService(repo ProductRepository) ProductService {
-	return &productServiceImpl{repo: repo}
+func NewProductService(repo ProductRepository, eventProducer producer.EventProducer) ProductService {
+	return &productServiceImpl{
+		repo:          repo,
+		eventProducer: eventProducer,
+	}
 }
 
-// business logic
 func (s *productServiceImpl) GetProducts() ([]models.Product, error) {
 	products, err := s.repo.GetAll()
 	if err != nil {
@@ -95,6 +101,17 @@ func (s *productServiceImpl) UpdateProduct(id uint, productInput models.ProductI
 
 	if err := s.repo.Update(product); err != nil {
 		return err
+	}
+
+	if product.Quantity < 100 {
+		event := events.LowProductQuantityNotificationEvent{
+			Name:     product.Name,
+			Quantity: product.Quantity,
+		}
+		err := s.eventProducer.Produce(event)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	return nil

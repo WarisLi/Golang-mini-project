@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// connect primary port
 type HttpProductHandler struct {
 	service ports.ProductService
 }

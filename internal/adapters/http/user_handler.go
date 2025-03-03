@@ -2,18 +2,15 @@ package http
 
 import (
 	"errors"
-	"os"
 	"time"
 
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 	"github.com/WarisLi/Golang-mini-project/internal/core/ports"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
-// connect primary port
 type HttpUserHandler struct {
 	service ports.UserService
 }
@@ -75,32 +72,17 @@ func (h *HttpUserHandler) LoginUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MessageResponse{Message: err.Error()})
 	}
 
-	err := h.service.LoginUser(requestUser)
+	token, err := h.service.LoginUser(requestUser)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(models.MessageResponse{Message: "The username or password is incorrect"})
 	}
 
-	// Create the Claims
-	claims := jwt.MapClaims{
-		"username": requestUser.Username,
-		"role":     "admin",
-		"exp":      time.Now().Add(time.Hour * 72).Unix(),
-	}
-	// Create token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-	if err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
-	}
-
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
-		Value:    t,
+		Value:    token,
 		Expires:  time.Now().Add(time.Hour * 72),
 		HTTPOnly: true,
 	})
 
-	return c.JSON(models.LoginSuccess{Message: "Login success", Token: t})
+	return c.JSON(models.LoginSuccess{Message: "Login success", Token: token})
 }

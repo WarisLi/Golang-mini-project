@@ -4,8 +4,7 @@ import (
 	"github.com/WarisLi/Golang-mini-project/internal/core/models"
 )
 
-// secondary port
 type UserRepository interface {
+	GetUser(username string) (*models.User, error)
 	Create(user models.User) error
-	ValidateUser(requestUser models.User) error
 }
